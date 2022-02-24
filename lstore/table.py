@@ -23,7 +23,7 @@ class Table:
     :param num_columns: int     #Number of Columns: all columns are integer
     :param key: int             #Index of table key in columns
     """
-    def __init__(self, name, num_columns, key):
+    def __init__(self, name, num_columns, key, isNew = True):
         self.name = name
         self.key = key
         self.num_columns = num_columns
@@ -284,6 +284,48 @@ class Table:
                         val = pages['tail'][math.floor(tail_rid / 512)].read(tail_rid % 512)
                         found.append(val)
         return found
+
+    def load_col(self, file_path, file_size, col = None):
+        if col == None:
+            self.RID = []
+            pages = self.RID
+        else:
+            self.page_directory[col]['base'] = []
+            pages = self.page_directory[col]['base']
+
+        file = open(file_path, 'rb')
+        for i in range(0, math.floor(file_size / 4096)):
+            page = Page()
+            page.data = file.read(4096)
+            pages.append(page)
+        file.close()
+
+    def set_cap(self):
+        last_rid = self.RID[-1]
+        last = 512
+        for i in range(0, 512):
+            if last_rid.read(i) == 0:
+                last = i
+                break
+
+        last_rid.num_records = last
+
+        for i in range(0, self.num_columns):
+            self.page_directory[i]['base'][-1].num_records = last
+
+    def save(self, file_path, col = None):
+        if col == None:
+            pages = self.RID
+        else:
+            pages = self.page_directory[col]['base']
+
+        file = open(file_path, 'wb')
+        for i in range(0, len(pages)):
+            # Check if page is dirty if page is dirty write to file
+            file.seek(i * 4096)
+            file.write(pages[i].data)
+
+            
 
 # Internal helper function for getting or creating an empty page
 def getEmptyPage(pages):
