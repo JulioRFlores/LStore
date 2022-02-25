@@ -33,6 +33,8 @@ class Page:
             return False 
 
     def half_write(self, value, location, is_upper, is_inc):
+        if not self.isDirty:
+            self.isDirty = True
         upper = 0 if is_upper else 4
         try:
             if not self.has_capacity() and is_inc:
@@ -47,7 +49,8 @@ class Page:
             return False
 
     def write(self, value, location = None):
-        
+        if not self.isDirty:
+            self.isDirty = True
         try:
             if self.has_capacity():
                 if location == None:
